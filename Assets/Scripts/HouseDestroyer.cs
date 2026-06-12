@@ -1,11 +1,8 @@
-using Assets.Scripts;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HouseDestroyer : MonoBehaviour
 {
-    [SerializeField] Item[] _walls;
+    [SerializeField] private Item[] _walls;
 
     private void Start()
     {
@@ -20,6 +17,5 @@ public class HouseDestroyer : MonoBehaviour
             wall.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Dynamic;
             wall.Grabbed -= OnWallGrabbed;
         }
-        
     }
 }

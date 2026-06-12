@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -28,7 +26,6 @@ namespace Assets.Scripts
             _audio.volume = 0;
             _audio.Play();
         }
-
 
         private void Update()
         {
@@ -64,7 +61,6 @@ namespace Assets.Scripts
                 _intrudersCount--;
                 _isIntruderDetected = _intrudersCount > 0;
             }
-                
         }
     }
 }
