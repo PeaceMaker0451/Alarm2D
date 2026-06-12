@@ -50,7 +50,7 @@ namespace Assets.Scripts
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if(other.tag == _targetTag)
+            if(other.CompareTag(_targetTag))
             {
                 _intrudersCount++;
                 _isIntruderDetected = true;
