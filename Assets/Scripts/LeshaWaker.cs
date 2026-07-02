@@ -5,12 +5,10 @@ namespace Assets.Scripts
     [RequireComponent(typeof(Lesha), typeof(Item))]
     public class LeshaWaker : MonoBehaviour
     {
-        [SerializeField] private Alarm _alarm;
+        [SerializeField] private AlarmSignal _alarm;
         
         private Lesha _lesha;
         private Item _item;
-
-        private bool _isUnsubscribed = false;
 
         private void Awake()
         {
@@ -26,8 +24,8 @@ namespace Assets.Scripts
 
         private void OnDestroy()
         {
-            if (_isUnsubscribed == false)
-                Unsubscribe();
+            Unsubscribe();
+
         }
 
         private void WakeLesha()
@@ -40,7 +38,6 @@ namespace Assets.Scripts
         {
             _item.Grabbed -= WakeLesha;
             _alarm.AlarmVolumeReachedThreshold -= WakeLesha;
-            _isUnsubscribed = true;
         }
     }
 }
