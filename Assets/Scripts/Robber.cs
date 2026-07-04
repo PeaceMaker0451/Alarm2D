@@ -7,15 +7,13 @@ namespace Assets.Scripts
     public class Robber : MonoBehaviour
     {
         [SerializeField] private Transform _stash;
-        [SerializeField] private Item[] _itemsToSteal;
+        [SerializeField] private TargetItems _items;
 
         [SerializeField] private float _throwToStashDistance;
         [SerializeField] private float _grabItemDistance;
 
         private ItemHandler _itemHandler;
         private CharacterMover _characterMover;
-
-        private Queue<Item> _targetItems;
 
         private Transform _currentTarget;
 
@@ -25,52 +23,47 @@ namespace Assets.Scripts
         {
             _itemHandler = GetComponent<ItemHandler>();
             _characterMover = GetComponent<CharacterMover>();
-
-            _targetItems = new();
-
-            foreach (var item in _itemsToSteal)
-                _targetItems.Enqueue(item);
         }
 
         private void Start()
         {
-            UpdateTarget();
+            _items.Initialize();
         }
 
-        private void Update()
-        {
-            if (_targetIsStash == false && _targetItems.Count == 0 )
-                return;
+        //private void Update()
+        //{
+        //    if (_targetIsStash == false && _targetItems.Count == 0 )
+        //        return;
             
-            _characterMover.Move((_currentTarget.position - transform.position).x);
+        //    _characterMover.Move((_currentTarget.position - transform.position).x);
             
-            if(_targetIsStash)
-            {
-                if(transform.position.x - _currentTarget.position.x <= _throwToStashDistance)
-                {
-                    _itemHandler.DropItem(_stash);
-                    _targetIsStash = false;
-                    UpdateTarget();
-                }
-            }
-            else
-            {
-                if(CanGrabTargetItem())
-                {
-                    _itemHandler.PickItem(_targetItems.Dequeue());
-                    _targetIsStash = true;
-                    UpdateTarget();
-                }
-            }
-        }
+        //    if(_targetIsStash)
+        //    {
+        //        if(transform.position.x - _currentTarget.position.x <= _throwToStashDistance)
+        //        {
+        //            _itemHandler.DropItem(_stash);
+        //            _targetIsStash = false;
+        //            UpdateTarget();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        if(CanGrabTargetItem())
+        //        {
+        //            _itemHandler.PickItem(_targetItems.Dequeue());
+        //            _targetIsStash = true;
+        //            UpdateTarget();
+        //        }
+        //    }
+        //}
 
-        private void UpdateTarget()
-        {
-            if (_targetIsStash)
-                _currentTarget = _stash;
-            else if (_targetItems.Count != 0)
-                _currentTarget = _targetItems.Peek().transform;
-        }
+        //private void UpdateTarget()
+        //{
+        //    if (_targetIsStash)
+        //        _currentTarget = _stash;
+        //    else if (_targetItems.Count != 0)
+        //        _currentTarget = _targetItems.Peek().transform;
+        //}
 
         private bool CanGrabTargetItem()
         {
@@ -83,6 +76,27 @@ namespace Assets.Scripts
             }
 
             return false;
+        }
+
+        [System.Serializable]
+        private class TargetItems
+        {
+            [SerializeField] private Item[] _itemsToSteal;
+
+            private Queue<Item> _targetItems;
+
+            public void Initialize()
+            {
+                _targetItems = new();
+
+                foreach (var item in _itemsToSteal)
+                    _targetItems.Enqueue(item);
+            }
+
+            public Item GetNextItem()
+            {
+                return _targetItems.Dequeue();
+            }
         }
     }
 }

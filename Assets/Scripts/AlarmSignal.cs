@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -12,7 +13,7 @@ namespace Assets.Scripts
         public event Action AlarmVolumeReachedThreshold;
 
         private AudioSource _audio;
-        private bool _isEnabled;
+        private Coroutine _currentSignalUpdater;
 
         private void Awake()
         {
@@ -25,32 +26,57 @@ namespace Assets.Scripts
             _audio.Play();
         }
 
-        private void Update()
-        {
-            UpdateVolume();
-        }
-
         public void Enable()
         {
-            _isEnabled = true;
+            ClearSignalUpdater();
+            StartCoroutine(EnableSignal());
         }
 
         public void Disable()
         {
-            _isEnabled = false;
+            ClearSignalUpdater();
+            StartCoroutine(DisableSignal());
         }
 
-        private void UpdateVolume()
+        private void ClearSignalUpdater()
         {
-            bool volumeWasBelowThreshold = _audio.volume <= _alarmEventVolumeThreshold;
+            if (_currentSignalUpdater == null)
+                return;
 
-            if (_isEnabled)
-                _audio.volume = Mathf.MoveTowards(_audio.volume, 1, Time.deltaTime * _volumeChangeSpeed);
-            else
-                _audio.volume = Mathf.MoveTowards(_audio.volume, 0, Time.deltaTime * _volumeChangeSpeed);
+            StopCoroutine(_currentSignalUpdater);
+            _currentSignalUpdater = null;
+        }
 
-            if (volumeWasBelowThreshold && _audio.volume > _alarmEventVolumeThreshold)
-                AlarmVolumeReachedThreshold?.Invoke();
+        private IEnumerator EnableSignal()
+        {
+            float targetVolume = 1;
+            
+            while(_audio.volume < targetVolume)
+            {
+                bool volumeWasBelowThreshold = _audio.volume <= _alarmEventVolumeThreshold;
+
+                _audio.volume = Mathf.MoveTowards(_audio.volume, targetVolume, Time.deltaTime * _volumeChangeSpeed);
+
+                if (volumeWasBelowThreshold && _audio.volume > _alarmEventVolumeThreshold)
+                    AlarmVolumeReachedThreshold?.Invoke();
+
+                yield return null;
+            }
+
+            _currentSignalUpdater = null;
+        }
+
+        private IEnumerator DisableSignal()
+        {
+            float targetVolume = 0;
+
+            while (_audio.volume > targetVolume)
+            {
+                _audio.volume = Mathf.MoveTowards(_audio.volume, targetVolume, Time.deltaTime * _volumeChangeSpeed);
+                yield return null;
+            }
+
+            _currentSignalUpdater = null;
         }
     }
 }

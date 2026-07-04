@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -6,26 +7,28 @@ namespace Assets.Scripts
     {
         [SerializeField] private float _rotationSpeed = 2;
 
-        private float _xDirection;
-        
-        private void Update()
-        {
-            UpdateSprite();
-        }
+        private Coroutine _currentRotationUpdater;
 
         public void SetXDirection(float xDirection)
         {
-            _xDirection = xDirection;
+            if( _currentRotationUpdater != null)
+                StopCoroutine( _currentRotationUpdater );
+
+            StartCoroutine(UpdateSprite(xDirection));
         }
         
-        private void UpdateSprite()
+        private IEnumerator UpdateSprite(float xDirection)
         {
             Vector3 turnBackAngle = new Vector3(0, 180, 0);
+            Vector3 targetRotation = xDirection > 0 ? Vector3.zero : turnBackAngle;
 
-            if (_xDirection > 0)
-                transform.eulerAngles = Vector3.MoveTowards(transform.eulerAngles, Vector3.zero, _rotationSpeed * Time.deltaTime);
-            else if (_xDirection < 0)
-                transform.eulerAngles = Vector3.MoveTowards(transform.eulerAngles, turnBackAngle, _rotationSpeed * Time.deltaTime);
-        }
+            while(transform.eulerAngles != targetRotation)
+            {
+                transform.eulerAngles = Vector3.MoveTowards(transform.eulerAngles, targetRotation, _rotationSpeed * Time.deltaTime);
+                yield return null;
+            }
+
+            _currentRotationUpdater = null;
+        } 
     }
 }
