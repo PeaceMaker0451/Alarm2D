@@ -29,13 +29,13 @@ namespace Assets.Scripts
         public void Enable()
         {
             ClearSignalUpdater();
-            StartCoroutine(EnableSignal());
+            _currentSignalUpdater = StartCoroutine(EnableSignal());
         }
 
         public void Disable()
         {
             ClearSignalUpdater();
-            StartCoroutine(DisableSignal());
+            _currentSignalUpdater = StartCoroutine(DisableSignal());
         }
 
         private void ClearSignalUpdater()

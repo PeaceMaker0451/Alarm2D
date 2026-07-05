@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -15,10 +16,6 @@ namespace Assets.Scripts
         private ItemHandler _itemHandler;
         private CharacterMover _characterMover;
 
-        private Transform _currentTarget;
-
-        private bool _targetIsStash;
-
         private void Awake()
         {
             _itemHandler = GetComponent<ItemHandler>();
@@ -28,50 +25,60 @@ namespace Assets.Scripts
         private void Start()
         {
             _items.Initialize();
+            TargetNewItem();
         }
 
-        //private void Update()
-        //{
-        //    if (_targetIsStash == false && _targetItems.Count == 0 )
-        //        return;
+        private IEnumerator MoveToItem(Item item)
+        {
+            Transform itemTransform = item.transform;
             
-        //    _characterMover.Move((_currentTarget.position - transform.position).x);
-            
-        //    if(_targetIsStash)
-        //    {
-        //        if(transform.position.x - _currentTarget.position.x <= _throwToStashDistance)
-        //        {
-        //            _itemHandler.DropItem(_stash);
-        //            _targetIsStash = false;
-        //            UpdateTarget();
-        //        }
-        //    }
-        //    else
-        //    {
-        //        if(CanGrabTargetItem())
-        //        {
-        //            _itemHandler.PickItem(_targetItems.Dequeue());
-        //            _targetIsStash = true;
-        //            UpdateTarget();
-        //        }
-        //    }
-        //}
+            while(CanGrabItem(item) == false)
+            {
+                _characterMover.Move((itemTransform.position - transform.position).x);
+                yield return null;
+            }
 
-        //private void UpdateTarget()
-        //{
-        //    if (_targetIsStash)
-        //        _currentTarget = _stash;
-        //    else if (_targetItems.Count != 0)
-        //        _currentTarget = _targetItems.Peek().transform;
-        //}
+            TakeItem(item);
+        }
 
-        private bool CanGrabTargetItem()
+        private IEnumerator MoveToStash()
+        {
+            while(transform.position.x - _stash.position.x > _throwToStashDistance)
+            {
+                _characterMover.Move((_stash.position - transform.position).x);
+                yield return null;
+            }
+
+            ThrowItem();
+        }
+
+        private void TakeItem(Item item)
+        {
+            _itemHandler.PickItem(item);
+            StartCoroutine(MoveToStash());
+        }
+        
+        private void ThrowItem()
+        {
+            _itemHandler.DropItem(_stash);
+            TargetNewItem();
+        }
+
+        private void TargetNewItem()
+        {
+            if (_items.TryGetNextItem(out Item item) == false)
+                return;
+
+            StartCoroutine(MoveToItem(item));
+        }
+
+        private bool CanGrabItem(Item item)
         {
             var colliders = Physics2D.OverlapCircleAll(transform.position, _grabItemDistance);
 
             foreach (var collider in colliders)
             {
-                if (collider.gameObject == _currentTarget.gameObject)
+                if (collider.gameObject == item.gameObject)
                     return true;
             }
 
@@ -93,9 +100,9 @@ namespace Assets.Scripts
                     _targetItems.Enqueue(item);
             }
 
-            public Item GetNextItem()
+            public bool TryGetNextItem(out Item item)
             {
-                return _targetItems.Dequeue();
+                return _targetItems.TryDequeue(out item);
             }
         }
     }
